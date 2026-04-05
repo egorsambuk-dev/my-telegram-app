@@ -580,8 +580,9 @@ function renderGrid(type = 'all') {
     const inCart = cart.some(c => c.id === p.id);
     const color  = TYPE_COLOR[p.type] || TYPE_COLOR.default;
     const emoji  = EMOJI[p.type] || EMOJI.default;
-    const imgHtml = p.photo
-      ? `<img src="${p.photo}" alt="${p.name}" loading="lazy">`
+    const photoUrl = p.photo ? p.photo.split('/').map(encodeURIComponent).join('/') : '';
+    const imgHtml = photoUrl
+      ? `<img src="${photoUrl}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`
       : emoji;
     return `
     <div class="card" onclick="showDetail('${p.id}')">
@@ -611,8 +612,9 @@ function showDetail(id) {
   const p = current;
   const color = TYPE_COLOR[p.type] || TYPE_COLOR.default;
   const emoji = EMOJI[p.type] || EMOJI.default;
-  document.getElementById('d-img').innerHTML = p.photo
-    ? `<img src="${p.photo}" alt="${p.name}">`
+  const photoUrl = p.photo ? p.photo.split('/').map(encodeURIComponent).join('/') : '';
+  document.getElementById('d-img').innerHTML = photoUrl
+    ? `<img src="${photoUrl}" alt="${p.name}" onerror="this.style.display='none'">`
     : `<span style="background:${color};width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:96px">${emoji}</span>`;
 
   const tags = [p.type.charAt(0).toUpperCase()+p.type.slice(1), p.audience || '', 'Handmade'].filter(Boolean);
@@ -676,8 +678,9 @@ function goCart() {
   } else {
     body.innerHTML = cart.map(p => {
       const emoji = EMOJI[p.type] || EMOJI.default;
-      const img = p.photo
-        ? `<img class="cart-item-img" src="${p.photo}" alt="${p.name}">`
+      const cartPhotoUrl = p.photo ? p.photo.split('/').map(encodeURIComponent).join('/') : '';
+      const img = cartPhotoUrl
+        ? `<img class="cart-item-img" src="${cartPhotoUrl}" alt="${p.name}" onerror="this.style.display='none'">`
         : `<div class="cart-item-emoji">${emoji}</div>`;
       return `
       <div class="cart-item">
