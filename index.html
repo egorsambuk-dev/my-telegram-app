@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Knot'S</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F3EE;
+  --bg2: #EFE9E0;
+  --surface: #FFFFFF;
+  --stone: #8B7355;
+  --stone-light: #C4A882;
+  --stone-dark: #5C4A32;
+  --accent: #C4845A;
+  --text: #2C1F14;
+  --text-muted: #8B7355;
+  --border: #DDD5C8;
+  --tag-bg: #F0E8DC;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 12px rgba(92,74,50,0.09);
+  --transition: 0.22s cubic-bezier(.4,0,.2,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+/* SCREENS */
+.screen { display: none; flex-direction: column; min-height: 100vh; }
+.screen.active { display: flex; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  padding: 14px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 8px rgba(92,74,50,0.06);
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 21px; font-weight: 400; color: var(--stone-dark);
+}
+.logo span { color: var(--accent); font-style: italic; }
+.back-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--stone); font-size: 14px; font-family: 'Nunito', sans-serif;
+  display: flex; align-items: center; gap: 4px; padding: 4px 6px 4px 0;
+}
+.cart-btn { background: none; border: none; cursor: pointer; position: relative; padding: 6px; }
+.cart-icon { font-size: 22px; }
+.cart-badge {
+  position: absolute; top: 0; right: 0;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700;
+  width: 17px; height: 17px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--surface);
+  transform: scale(0);
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.cart-badge.show { transform: scale(1); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(150deg, #4A3828 0%, #7A5C3A 55%, var(--accent) 100%);
+  padding: 24px 20px 28px; color: #fff; position: relative; overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute; top: -50px; right: -50px;
+  width: 180px; height: 180px;
+  background: rgba(255,255,255,0.04); border-radius: 50%;
+}
+.hero-eyebrow {
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  opacity: 0.7; margin-bottom: 8px;
+}
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; line-height: 1.2; margin-bottom: 6px;
+}
+.hero h1 em { font-style: italic; color: #F5D5B8; }
+.hero p { font-size: 12px; opacity: 0.8; line-height: 1.5; }
+
+/* FILTERS */
+.filters {
+  padding: 14px 18px 6px;
+  display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+.chip {
+  background: var(--surface); border: 1.5px solid var(--border);
+  color: var(--text-muted); padding: 5px 13px; border-radius: 20px;
+  font-size: 12px; font-family: 'Nunito', sans-serif;
+  cursor: pointer; white-space: nowrap; font-weight: 600;
+  transition: all var(--transition);
+}
+.chip.active { background: var(--stone-dark); border-color: var(--stone-dark); color: #fff; }
+
+/* GRID */
+.section-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; color: var(--stone-dark);
+  padding: 10px 18px 4px;
+}
+.grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; padding: 8px 18px 120px;
+}
+
+/* PRODUCT CARD */
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow);
+  cursor: pointer; transition: transform var(--transition);
+  position: relative;
+}
+.card:active { transform: scale(0.97); }
+.card-img {
+  width: 100%; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px; position: relative;
+}
+.card-img img {
+  width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;
+}
+.card-badge {
+  position: absolute; top: 8px; left: 8px;
+  background: var(--accent); color: #fff;
+  font-size: 9px; font-weight: 700; padding: 3px 7px;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
+  z-index: 2;
+}
+.sold-overlay {
+  position: absolute; inset: 0;
+  background: rgba(247,243,238,0.75);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--stone);
+  letter-spacing: 0.5px; text-transform: uppercase; z-index: 3;
+}
+.card-body { padding: 10px 11px 12px; }
+.card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; font-weight: 500; line-height: 1.3; margin-bottom: 2px;
+}
+.card-stone { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.card-price { font-size: 14px; font-weight: 700; color: var(--stone-dark); }
+.add-btn {
+  background: var(--stone-dark); color: #fff; border: none;
+  border-radius: 50%; width: 28px; height: 28px; font-size: 17px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition), transform .15s;
+}
+.add-btn:active { transform: scale(0.86); }
+.add-btn.added { background: var(--accent); }
+
+/* LOADING */
+.loading {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; color: var(--text-muted);
+  padding-bottom: 60px;
+}
+.spinner {
+  width: 32px; height: 32px; border: 3px solid var(--border);
+  border-top-color: var(--stone); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* DETAIL */
+.detail-img {
+  width: 100%; aspect-ratio: 1; background: var(--bg2);
+  display: flex; align-items: center; justify-content: center; font-size: 96px;
+  position: relative; overflow: hidden;
+}
+.detail-img img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.detail-body { padding: 18px; flex: 1; }
+.detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.detail-tag {
+  background: var(--tag-bg); color: var(--stone);
+  font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600;
+}
+.detail-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px; font-weight: 400; margin-bottom: 3px; line-height: 1.2;
+}
+.detail-stone { color: var(--text-muted); font-size: 13px; margin-bottom: 12px; }
+.detail-desc {
+  font-size: 13px; line-height: 1.65; color: var(--text-muted);
+  margin-bottom: 16px; border-left: 2px solid var(--stone-light); padding-left: 11px;
+}
+.detail-price-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.detail-price {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 400; color: var(--stone-dark);
+}
+.detail-price span { font-size: 17px; }
+.one-left {
+  background: #FFF3E0; color: #E65100;
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+}
+
+/* CART */
+.cart-body { padding: 14px 18px; flex: 1; }
+.cart-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; color: var(--text-muted); padding-bottom: 80px;
+}
+.cart-empty-icon { font-size: 52px; opacity: 0.45; }
+.cart-item {
+  background: var(--surface); border-radius: var(--radius-sm);
+  padding: 12px; display: flex; gap: 11px; margin-bottom: 9px;
+  box-shadow: var(--shadow); align-items: center;
+}
+.cart-item-emoji { font-size: 34px; min-width: 42px; text-align: center; }
+.cart-item-img {
+  width: 42px; height: 42px; border-radius: 8px;
+  object-fit: cover; flex-shrink: 0;
+}
+.cart-item-info { flex: 1; }
+.cart-item-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; font-weight: 500; margin-bottom: 1px;
+}
+.cart-item-stone { font-size: 10px; color: var(--text-muted); }
+.cart-item-price { font-weight: 700; font-size: 14px; color: var(--stone-dark); margin-top: 4px; }
+.cart-remove {
+  background: none; border: none; cursor: pointer;
+  font-size: 17px; color: var(--text-muted); padding: 4px;
+}
+.cart-summary {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 14px 18px; border-radius: var(--radius) var(--radius) 0 0;
+}
+.summary-row {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-muted); margin-bottom: 5px;
+}
+.summary-total {
+  display: flex; justify-content: space-between;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; color: var(--text);
+  margin: 8px 0 12px; border-top: 1px solid var(--border); padding-top: 8px;
+}
+
+/* ORDER FORM */
+.order-body { padding: 18px; flex: 1; }
+.form-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; margin-bottom: 3px; }
+.form-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+.form-group { margin-bottom: 13px; }
+.form-label {
+  font-size: 11px; font-weight: 700; color: var(--stone);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block;
+}
+.form-input {
+  width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 13px;
+  font-family: 'Nunito', sans-serif; font-size: 14px; color: var(--text);
+  outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--stone-light); }
+textarea.form-input { resize: none; height: 72px; }
+.delivery-opt {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 13px;
+  display: flex; align-items: center; gap: 11px;
+  cursor: pointer; transition: border-color .2s; margin-bottom: 7px;
+}
+.delivery-opt.sel { border-color: var(--stone-dark); background: #F7F2EB; }
+.radio {
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 2px solid var(--border); display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: border-color .2s;
+}
+.delivery-opt.sel .radio { border-color: var(--stone-dark); }
+.radio-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--stone-dark); opacity: 0; transition: opacity .2s;
+}
+.delivery-opt.sel .radio-dot { opacity: 1; }
+.del-info { flex: 1; }
+.del-name { font-size: 13px; font-weight: 600; }
+.del-desc { font-size: 10px; color: var(--text-muted); }
+.del-price { font-size: 12px; font-weight: 700; color: var(--stone-dark); }
+
+/* SUCCESS */
+.success-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 36px 28px; gap: 0;
+}
+.success-icon { font-size: 64px; animation: pop .5s cubic-bezier(.34,1.56,.64,1); margin-bottom: 18px; }
+@keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.success-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; margin-bottom: 9px; }
+.success-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 22px; }
+.order-pill {
+  background: var(--bg2); border-radius: var(--radius-sm);
+  padding: 9px 18px; font-size: 12px; color: var(--text-muted); margin-bottom: 24px;
+}
+.order-pill strong { color: var(--text); }
+
+/* BUTTONS */
+.btn-wrap {
+  position: sticky; bottom: 0; background: var(--surface);
+  padding: 10px 18px 18px; border-top: 1px solid var(--border);
+}
+.btn {
+  width: 100%; border: none; border-radius: var(--radius-sm);
+  padding: 14px; font-family: 'Nunito', sans-serif; font-size: 14px;
+  font-weight: 700; cursor: pointer; transition: all var(--transition);
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--stone-dark); color: #fff; }
+.btn-primary:hover { background: var(--stone); }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-outline {
+  background: none; color: var(--stone-dark);
+  border: 1.5px solid var(--stone-dark); margin-top: 7px;
+}
+.btn-outline:hover { background: var(--bg2); }
+
+/* NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; z-index: 200;
+  box-shadow: 0 -3px 16px rgba(92,74,50,0.07);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 9px 4px 11px; cursor: pointer;
+  font-size: 10px; color: var(--text-muted); font-weight: 600;
+  border: none; background: none; position: relative;
+  transition: color .2s;
+}
+.nav-btn.active { color: var(--stone-dark); }
+.nav-icon { font-size: 21px; margin-bottom: 2px; }
+.nav-dot {
+  position: absolute; top: 8px; right: calc(50% - 14px);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); transform: scale(0);
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.nav-dot.show { transform: scale(1); }
+</style>
+</head>
+<body>
+
+<!-- CATALOG -->
+<div id="s-catalog" class="screen active">
+  <div class="header">
+    <div class="logo">The Knot<span>'S</span></div>
+    <button class="cart-btn" onclick="goCart()">
+      <span class="cart-icon">🛍️</span>
+      <div class="cart-badge" id="badge1">0</div>
+    </button>
+  </div>
+  <div class="hero">
+    <div class="hero-eyebrow">✦ Украшения ручной работы · Москва</div>
+    <h1>Камни<br>на <em>шнурках</em></h1>
+    <p>Каждое украшение создано вручную. Натуральные камни, авторские идеи.</p>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="section-label" id="section-label">Коллекция</div>
+  <div class="grid" id="grid">
+    <div class="loading" style="grid-column:1/-1;padding:40px 0">
+      <div class="spinner"></div>
+      <span>Загружаем каталог…</span>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="s-detail" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="go('catalog')">← Назад</button>
+    <button class="cart-btn" onclick="goCart()">
+      <span class="cart-icon">🛍️</span>
+      <div class="cart-badge" id="badge2">0</div>
+    </button>
+  </div>
+  <div class="detail-img" id="d-img"></div>
+  <div class="detail-body">
+    <div class="detail-tags" id="d-tags"></div>
+    <div class="detail-name" id="d-name"></div>
+    <div class="detail-stone" id="d-stone"></div>
+    <div class="detail-desc" id="d-desc"></div>
+    <div class="detail-price-row">
+      <div class="detail-price" id="d-price"></div>
+      <div id="d-oneleft"></div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn btn-primary" id="d-btn" onclick="addFromDetail()">Добавить в корзину</button>
+  </div>
+</div>
+
+<!-- CART -->
+<div id="s-cart" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="go('catalog')">← Назад</button>
+    <div class="logo" style="font-size:18px">Корзина</div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="cart-body" id="cart-body"></div>
+  <div id="cart-foot"></div>
+</div>
+
+<!-- ORDER -->
+<div id="s-order" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="go('cart')">← Корзина</button>
+    <div class="logo" style="font-size:18px">Оформление</div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="order-body">
+    <div class="form-title">Ваши данные</div>
+    <div class="form-sub">Мария напишет вам для подтверждения и оплаты</div>
+    <div class="form-group">
+      <label class="form-label">Имя</label>
+      <input class="form-input" type="text" id="f-name" placeholder="Как вас зовут?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telegram или телефон</label>
+      <input class="form-input" type="text" id="f-contact" placeholder="@username или +7 999 123-45-67">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Способ получения</label>
+      <div id="delivery-opts">
+        <div class="delivery-opt sel" onclick="selDel(this)">
+          <div class="radio"><div class="radio-dot"></div></div>
+          <div class="del-info"><div class="del-name">🏠 Доставка по Москве</div><div class="del-desc">СДЭК или курьер, 1–3 дня</div></div>
+          <div class="del-price">от 300 ₽</div>
+        </div>
+        <div class="delivery-opt" onclick="selDel(this)">
+          <div class="radio"><div class="radio-dot"></div></div>
+          <div class="del-info"><div class="del-name">🤝 Самовывоз</div><div class="del-desc">Встреча в Москве</div></div>
+          <div class="del-price">Бесплатно</div>
+        </div>
+        <div class="delivery-opt" onclick="selDel(this)">
+          <div class="radio"><div class="radio-dot"></div></div>
+          <div class="del-info"><div class="del-name">📦 Почта России</div><div class="del-desc">По всей России, 5–10 дней</div></div>
+          <div class="del-price">от 250 ₽</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Пожелания</label>
+      <textarea class="form-input" id="f-note" placeholder="Размер, подарочная упаковка, особые пожелания…"></textarea>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn btn-accent" onclick="placeOrder()">✦ Отправить заказ</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div id="s-success" class="screen">
+  <div class="success-wrap">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Заказ отправлен!</div>
+    <div class="success-text">Мария получила ваш заказ и напишет в ближайшее время для подтверждения и оплаты.</div>
+    <div class="order-pill">Номер заказа: <strong id="order-num">#1042</strong></div>
+    <button class="btn btn-primary" style="max-width:220px" onclick="reset()">Вернуться в каталог</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="bottom-nav" id="nav">
+  <button class="nav-btn active" onclick="go('catalog'); navActive(this)">
+    <span class="nav-icon">🏠</span>Каталог
+  </button>
+  <button class="nav-btn" onclick="goCart(); navActive(this)">
+    <span class="nav-icon">🛍️</span>Корзина
+    <div class="nav-dot" id="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="goAbout()">
+    <span class="nav-icon">💎</span>О мастере
+  </button>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────
+// ⚠️ Замени на URL твоего catalog.json на GitHub Pages:
+const CATALOG_URL = 'https://egorsambuk-dev.github.io/my-telegram-app/catalog.json';
+
+// Эмодзи-заглушки по типу украшения
+const EMOJI = {
+  браслет:'🪨', серьги:'✨', ожерелье:'📿', колье:'📿',
+  комплект:'💎', кулон:'🌙', набор:'🎁', default:'💍'
+};
+const TYPE_COLOR = {
+  браслет:'#F5EDE0', серьги:'#F5E8F5', ожерелье:'#E8F0F5',
+  колье:'#EDE5F5', комплект:'#E8F5EE', кулон:'#F5F0E0',
+  набор:'#F5EBE0', default:'#F0EAE0'
+};
+
+// ─── STATE ────────────────────────────────────────────
+let products = [];
+let cart     = [];
+let current  = null;
+let activeFilter = 'all';
+
+// ─── INIT ─────────────────────────────────────────────
+if (window.Telegram?.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
+loadCatalog();
+
+async function loadCatalog() {
+  try {
+    const res  = await fetch(CATALOG_URL + '?t=' + Date.now());
+    products   = await res.json();
+    renderFilters();
+    renderGrid();
+  } catch (e) {
+    document.getElementById('grid').innerHTML =
+      `<div style="grid-column:1/-1;padding:40px 16px;text-align:center;color:var(--text-muted)">
+        ⚠️ Не удалось загрузить каталог.<br>Проверьте подключение к интернету.
+      </div>`;
+  }
+}
+
+// ─── FILTERS ──────────────────────────────────────────
+function renderFilters() {
+  const types = ['all', ...new Set(products.map(p => p.type))];
+  const labels = { all:'Все', браслет:'Браслеты', серьги:'Серьги',
+    ожерелье:'Ожерелья', колье:'Колье', комплект:'Комплекты',
+    кулон:'Кулоны', набор:'Наборы' };
+  document.getElementById('filters').innerHTML = types.map(t =>
+    `<button class="chip${t === activeFilter ? ' active' : ''}" onclick="filter('${t}', this)">
+      ${labels[t] || t}
+    </button>`
+  ).join('');
+}
+
+function filter(type, btn) {
+  activeFilter = type;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const visible = type === 'all' ? products : products.filter(p => p.type === type);
+  document.getElementById('section-label').textContent =
+    type === 'all' ? `Коллекция (${products.length})` : `${btn.textContent.trim()} (${visible.length})`;
+  renderGrid(type);
+}
+
+// ─── GRID ─────────────────────────────────────────────
+function renderGrid(type = 'all') {
+  const list = type === 'all' ? products : products.filter(p => p.type === type);
+  if (!list.length) {
+    document.getElementById('grid').innerHTML =
+      `<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--text-muted)">Ничего не найдено</div>`;
+    return;
+  }
+  document.getElementById('grid').innerHTML = list.map(p => {
+    const inCart = cart.some(c => c.id === p.id);
+    const color  = TYPE_COLOR[p.type] || TYPE_COLOR.default;
+    const emoji  = EMOJI[p.type] || EMOJI.default;
+    const imgHtml = p.photo
+      ? `<img src="${p.photo}" alt="${p.name}" loading="lazy">`
+      : emoji;
+    return `
+    <div class="card" onclick="showDetail('${p.id}')">
+      <div class="card-img" style="background:${color}">
+        ${p.isNew ? '<div class="card-badge">Новинка</div>' : ''}
+        ${!p.inStock ? '<div class="sold-overlay">Продано</div>' : ''}
+        ${imgHtml}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-stone">${p.stone}</div>
+        <div class="card-footer">
+          <div class="card-price">${p.price.toLocaleString('ru')} ₽</div>
+          ${p.inStock ? `<button class="add-btn${inCart ? ' added' : ''}"
+            onclick="event.stopPropagation(); quickAdd('${p.id}', this)">
+            ${inCart ? '✓' : '+'}
+          </button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── DETAIL ───────────────────────────────────────────
+function showDetail(id) {
+  current = products.find(p => p.id === id);
+  const p = current;
+  const color = TYPE_COLOR[p.type] || TYPE_COLOR.default;
+  const emoji = EMOJI[p.type] || EMOJI.default;
+  document.getElementById('d-img').innerHTML = p.photo
+    ? `<img src="${p.photo}" alt="${p.name}">`
+    : `<span style="background:${color};width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:96px">${emoji}</span>`;
+
+  const tags = [p.type.charAt(0).toUpperCase()+p.type.slice(1), p.audience || '', 'Handmade'].filter(Boolean);
+  document.getElementById('d-tags').innerHTML  = tags.map(t => `<span class="detail-tag">${t}</span>`).join('');
+  document.getElementById('d-name').textContent  = p.name;
+  document.getElementById('d-stone').textContent = '🪨 ' + p.stone;
+  document.getElementById('d-desc').textContent  = p.description;
+  document.getElementById('d-price').innerHTML   = `${p.price.toLocaleString('ru')} <span>₽</span>`;
+  document.getElementById('d-oneleft').innerHTML = p.isNew ? '<div class="one-left">Новинка</div>' : '';
+
+  const inCart = cart.some(c => c.id === p.id);
+  const btn = document.getElementById('d-btn');
+  if (!p.inStock) {
+    btn.textContent = 'Нет в наличии'; btn.disabled = true; btn.style.opacity = '.5';
+  } else {
+    btn.disabled = false; btn.style.opacity = '';
+    btn.textContent = inCart ? '✓ В корзине' : 'Добавить в корзину';
+    btn.style.background = inCart ? 'var(--accent)' : '';
+  }
+  go('detail');
+}
+
+function addFromDetail() {
+  if (!current?.inStock) return;
+  const inCart = cart.some(c => c.id === current.id);
+  if (inCart) { goCart(); return; }
+  cart.push({...current});
+  updateCartUI();
+  renderGrid(activeFilter);
+  const btn = document.getElementById('d-btn');
+  btn.textContent = '✓ В корзине';
+  btn.style.background = 'var(--accent)';
+}
+
+function quickAdd(id, btn) {
+  const idx = cart.findIndex(c => c.id === id);
+  if (idx === -1) {
+    cart.push({...products.find(p => p.id === id)});
+    btn.textContent = '✓'; btn.classList.add('added');
+  } else {
+    cart.splice(idx, 1);
+    btn.textContent = '+'; btn.classList.remove('added');
+  }
+  updateCartUI();
+}
+
+// ─── CART ─────────────────────────────────────────────
+function goCart() {
+  const body = document.getElementById('cart-body');
+  const foot = document.getElementById('cart-foot');
+  if (!cart.length) {
+    body.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🛍️</div>
+        <p style="font-size:14px">Корзина пуста</p>
+        <button class="btn btn-outline" style="max-width:180px;margin-top:4px" onclick="go('catalog')">
+          В каталог
+        </button>
+      </div>`;
+    foot.innerHTML = '';
+  } else {
+    body.innerHTML = cart.map(p => {
+      const emoji = EMOJI[p.type] || EMOJI.default;
+      const img = p.photo
+        ? `<img class="cart-item-img" src="${p.photo}" alt="${p.name}">`
+        : `<div class="cart-item-emoji">${emoji}</div>`;
+      return `
+      <div class="cart-item">
+        ${img}
+        <div class="cart-item-info">
+          <div class="cart-item-name">${p.name}</div>
+          <div class="cart-item-stone">${p.stone}</div>
+          <div class="cart-item-price">${p.price.toLocaleString('ru')} ₽</div>
+        </div>
+        <button class="cart-remove" onclick="removeItem('${p.id}')">✕</button>
+      </div>`;
+    }).join('');
+    const total = cart.reduce((s, p) => s + p.price, 0);
+    foot.innerHTML = `
+      <div class="cart-summary">
+        <div class="summary-row"><span>Товаров</span><span>${cart.length} шт.</span></div>
+        <div class="summary-row"><span>Доставка</span><span>уточняется</span></div>
+        <div class="summary-total"><span>Итого</span><span>${total.toLocaleString('ru')} ₽</span></div>
+        <button class="btn btn-primary" onclick="go('order')">Оформить заказ</button>
+        <button class="btn btn-outline" onclick="go('catalog')">Продолжить покупки</button>
+      </div>`;
+  }
+  go('cart');
+  navActive(document.querySelectorAll('.nav-btn')[1]);
+}
+
+function removeItem(id) {
+  cart = cart.filter(p => p.id !== id);
+  updateCartUI();
+  renderGrid(activeFilter);
+  goCart();
+}
+
+// ─── ORDER ────────────────────────────────────────────
+function selDel(el) {
+  document.querySelectorAll('.delivery-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function placeOrder() {
+  const name    = document.getElementById('f-name').value.trim();
+  const contact = document.getElementById('f-contact').value.trim();
+  if (!name || !contact) { alert('Пожалуйста, укажите имя и контакт'); return; }
+
+  const delivery = document.querySelector('.delivery-opt.sel .del-name')?.textContent || '';
+  const note     = document.getElementById('f-note').value.trim();
+  const items    = cart.map(p => `${p.name} — ${p.price.toLocaleString('ru')} ₽`).join('\n');
+  const total    = cart.reduce((s, p) => s + p.price, 0);
+
+  const orderData = {
+    name, contact, delivery, note, items,
+    total: total + ' ₽',
+    orderId: '#' + (1000 + Math.floor(Math.random() * 9000))
+  };
+
+  // Отправляем данные в Telegram бот
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify(orderData));
+  }
+
+  document.getElementById('order-num').textContent = orderData.orderId;
+  cart = [];
+  updateCartUI();
+  renderGrid(activeFilter);
+  go('success');
+  document.getElementById('nav').style.display = 'none';
+}
+
+// ─── SUCCESS ──────────────────────────────────────────
+function reset() {
+  document.getElementById('nav').style.display = 'flex';
+  ['f-name','f-contact','f-note'].forEach(id => document.getElementById(id).value = '');
+  go('catalog');
+  navActive(document.querySelectorAll('.nav-btn')[0]);
+}
+
+// ─── ABOUT ────────────────────────────────────────────
+function goAbout() {
+  alert('Мария Самбук\n\nАвтор украшений на шнурках из натуральных камней.\nКаждое изделие создаётся вручную в Москве.\nБолее 500 счастливых клиентов.\n\nTelegram: @Mariasambuk\nWhatsApp: +7 903 719-46-13');
+}
+
+// ─── UI HELPERS ───────────────────────────────────────
+function go(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + screen).classList.add('active');
+  const hideNav = ['order','success'].includes(screen);
+  document.getElementById('nav').style.display = hideNav ? 'none' : 'flex';
+  window.scrollTo(0, 0);
+}
+
+function updateCartUI() {
+  const n = cart.length;
+  ['badge1','badge2'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = n;
+    el.classList.toggle('show', n > 0);
+  });
+  document.getElementById('nav-dot').classList.toggle('show', n > 0);
+}
+
+function navActive(btn) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+}
+</script>
+</body>
+</html>
