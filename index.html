@@ -720,33 +720,45 @@ function selDel(el) {
   el.classList.add('sel');
 }
 
-function placeOrder() {
-  const name    = document.getElementById('f-name').value.trim();
-  const contact = document.getElementById('f-contact').value.trim();
-  if (!name || !contact) { alert('Пожалуйста, укажите имя и контакт'); return; }
+async function placeOrder() {
+  const name    = document.getElementById("f-name").value.trim();
+  const contact = document.getElementById("f-contact").value.trim();
+  if (!name || !contact) { alert("Пожалуйста, укажите имя и контакт"); return; }
 
-  const delivery = document.querySelector('.delivery-opt.sel .del-name')?.textContent || '';
-  const note     = document.getElementById('f-note').value.trim();
-  const items    = cart.map(p => `${p.name} — ${p.price.toLocaleString('ru')} ₽`).join('\n');
+  const delivery = document.querySelector(".delivery-opt.sel .del-name")?.textContent || "";
+  const note     = document.getElementById("f-note").value.trim();
+  const items    = cart.map(p => "• " + p.name + " — " + p.price.toLocaleString("ru") + " ₽").join("\n");
   const total    = cart.reduce((s, p) => s + p.price, 0);
+  const orderId  = "#" + (1000 + Math.floor(Math.random() * 9000));
 
-  const orderData = {
-    name, contact, delivery, note, items,
-    total: total + ' ₽',
-    orderId: '#' + (1000 + Math.floor(Math.random() * 9000))
-  };
+  const text = [
+    "🛍 *Новый заказ " + orderId + "*",
+    "",
+    "👤 *Покупатель:* " + name,
+    "📱 *Контакт:* " + contact,
+    "🚚 *Доставка:* " + delivery.trim(),
+    "",
+    "🧵 *Состав заказа:*",
+    items,
+    "",
+    "💰 *Итого: " + total.toLocaleString("ru") + " ₽*",
+    note ? "📝 *Пожелания:* " + note : ""
+  ].filter(Boolean).join("\n");
 
-  // Отправляем данные в Telegram бот
-  if (window.Telegram?.WebApp) {
-    Telegram.WebApp.sendData(JSON.stringify(orderData));
-  }
+  try {
+    await fetch("https://api.telegram.org/bot8764116792:AAESFoN0t44hODOwWDsu4xU_ZOJ1j4YWSB0/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: 900356045, text: text, parse_mode: "Markdown" })
+    });
+  } catch(e) { console.error("Ошибка отправки:", e); }
 
-  document.getElementById('order-num').textContent = orderData.orderId;
+  document.getElementById("order-num").textContent = orderId;
   cart = [];
   updateCartUI();
   renderGrid(activeFilter);
-  go('success');
-  document.getElementById('nav').style.display = 'none';
+  go("success");
+  document.getElementById("nav").style.display = "none";
 }
 
 // ─── SUCCESS ──────────────────────────────────────────
